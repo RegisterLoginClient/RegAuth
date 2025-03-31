@@ -69,6 +69,10 @@ class User:
         self.cursor.execute('SELECT * FROM Users WHERE Login = ?', (self.username,))
         return self.cursor.fetchone() is not None
 
+    def get_all_users(self):
+        self.cursor.execute('SELECT Login, LastAuth FROM Users')
+        return self.cursor.fetchall()
+
     def close_connection(self):
         self.conn.close()
 
