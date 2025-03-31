@@ -8,7 +8,7 @@ from datetime import datetime
 secret_key = get_random_bytes(16)
 
 class User:
-    def __init__(self, username, password=None):
+    def __init__(self, username=None, password=None):
         self.username = username
         self.password = password
         self.connection_string = ('DRIVER={ODBC Driver 17 for SQL Server};SERVER=localhost;DATABASE=Test;Trusted_Connection=yes')
