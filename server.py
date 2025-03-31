@@ -63,3 +63,56 @@ class User:
 
     def close_connection(self):
         self.conn.close()
+
+def clients(client):
+    while True:
+        request_data = client.recv(4096).decode('utf-8')
+        if not request_data:
+            break
+
+        data = jsonpickle.decode(request_data)
+
+        if data['action'] == 'register':
+            username = data['username']
+            password = data['password']
+
+            user = User(username, password)
+
+            if user.check_username_exists():
+                response = {"message": "User already registered"}
+            else:
+                user.register_user()
+                response = {"message": "Registration successful"}
+            user.close_connection()
+
+        elif data['action'] == 'login':
+            username = data['username']
+            password = data['password']
+
+            user = User(username)
+
+            if user.check_login(password):
+                response = {"message": "Login successful"}
+            else:
+                response = {"message": "Error"}
+            user.close_connection()
+
+        else:
+            response = {"message": "Error"}
+        client.send(jsonpickle.encode(response).encode('utf-8'))
+
+    client.close()
+
+
+IP = '127.0.0.1'
+PORT = 4000
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind((IP, PORT))
+server.listen(1)
+print("Сервер запущен...")
+
+while True:
+    client, addr = server.accept()
+    print(f"Подключение от {addr}")
+    clients(client)
