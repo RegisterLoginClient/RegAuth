@@ -23,3 +23,13 @@ class User:
         self.cursor.execute('SELECT SecretKey FROM Users WHERE Login = ?', (self.username,))
         result = self.cursor.fetchone()
         return result[0] if result else None
+
+    def register_user(self):
+        cipher = AES.new(secret_key, AES.MODE_EAX)
+        nonce = cipher.nonce
+        ciphertext, tag = cipher.encrypt_and_digest(self.password.encode('utf-8'))
+
+        db_password = f"{ciphertext.hex()}:{nonce.hex()}:{tag.hex()}"
+
+        self.cursor.execute('INSERT INTO Users (Login, Password, SecretKey) VALUES (?, ?, ?)', (self.username, db_password, secret_key))
+        self.conn.commit()
