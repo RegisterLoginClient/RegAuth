@@ -22,3 +22,32 @@ def send_request(action, username, password):
     client.close()
 
     return response
+
+
+
+
+
+
+root = Tk()
+root.title("ClientGUI")
+
+Label(root, text="Username:").grid(row=0, column=0, padx=10, pady=10)
+username_entry = Entry(root)
+username_entry.grid(row=0, column=1, padx=10, pady=10)
+
+Label(root, text="Password:").grid(row=1, column=0, padx=10, pady=10)
+password_entry = Entry(root, show="*")
+password_entry.grid(row=1, column=1, padx=10, pady=10)
+
+Label(root, text="Repeat password:").grid(row=2, column=0, padx=10, pady=10)
+repeat_password_entry = Entry(root, show="*")
+repeat_password_entry.grid(row=2, column=1, padx=10, pady=10)
+
+register_btn = Button(root, text="Register", command=register)
+register_btn.grid(row=3, column=0, padx=10, pady=10)
+
+login_btn = Button(root, text="Login", command=login)
+login_btn.grid(row=3, column=1, padx=10, pady=10)
+
+
+root.mainloop()
