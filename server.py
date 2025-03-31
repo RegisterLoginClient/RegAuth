@@ -3,6 +3,7 @@ import jsonpickle
 import pyodbc
 from Cryptodome.Cipher import AES
 from Cryptodome.Random import get_random_bytes
+from datetime import datetime
 
 secret_key = get_random_bytes(16)
 
@@ -31,7 +32,7 @@ class User:
 
         db_password = f"{ciphertext.hex()}:{nonce.hex()}:{tag.hex()}"
 
-        self.cursor.execute('INSERT INTO Users (Login, Password, SecretKey) VALUES (?, ?, ?)', (self.username, db_password, secret_key))
+        self.cursor.execute('INSERT INTO Users (Login, Password, SecretKey, LastAuth) VALUES (?, ?, ?, ?)', (self.username, db_password, secret_key, None))
         self.conn.commit()
 
     def check_login(self, input_password):
@@ -53,7 +54,14 @@ class User:
 
             cipher = AES.new(secret_key, AES.MODE_EAX, nonce=nonce)
             decrypted = cipher.decrypt_and_verify(ciphertext, tag)
-            return decrypted.decode('utf-8') == input_password
+
+            if decrypted.decode('utf-8') == input_password:
+                current_time = datetime.now()
+                self.cursor.execute('UPDATE Users SET LastAuth = ? WHERE Login = ?', (current_time, self.username))
+                self.conn.commit()
+                return True
+            else:
+                return False
         except:
             return False
 
