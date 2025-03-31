@@ -3,11 +3,12 @@ import jsonpickle
 import pyodbc
 from Cryptodome.Cipher import AES
 from Cryptodome.Random import get_random_bytes
+from datetime import datetime
 
 secret_key = get_random_bytes(16)
 
 class User:
-    def __init__(self, username, password=None):
+    def __init__(self, username=None, password=None):
         self.username = username
         self.password = password
         self.connection_string = ('DRIVER={ODBC Driver 17 for SQL Server};SERVER=localhost;DATABASE=Test;Trusted_Connection=yes')
@@ -31,7 +32,7 @@ class User:
 
         db_password = f"{ciphertext.hex()}:{nonce.hex()}:{tag.hex()}"
 
-        self.cursor.execute('INSERT INTO Users (Login, Password, SecretKey) VALUES (?, ?, ?)', (self.username, db_password, secret_key))
+        self.cursor.execute('INSERT INTO Users (Login, Password, SecretKey, LastAuth) VALUES (?, ?, ?, ?)', (self.username, db_password, secret_key, None))
         self.conn.commit()
 
     def check_login(self, input_password):
@@ -53,13 +54,24 @@ class User:
 
             cipher = AES.new(secret_key, AES.MODE_EAX, nonce=nonce)
             decrypted = cipher.decrypt_and_verify(ciphertext, tag)
-            return decrypted.decode('utf-8') == input_password
+
+            if decrypted.decode('utf-8') == input_password:
+                current_time = datetime.now()
+                self.cursor.execute('UPDATE Users SET LastAuth = ? WHERE Login = ?', (current_time, self.username))
+                self.conn.commit()
+                return True
+            else:
+                return False
         except:
             return False
 
     def check_username_exists(self):
         self.cursor.execute('SELECT * FROM Users WHERE Login = ?', (self.username,))
         return self.cursor.fetchone() is not None
+
+    def get_all_users(self):
+        self.cursor.execute('SELECT Login, LastAuth FROM Users')
+        return self.cursor.fetchall()
 
     def close_connection(self):
         self.conn.close()
@@ -96,6 +108,12 @@ def clients(client):
             else:
                 response = {"message": "Error"}
             user.close_connection()
+
+        elif data['action'] == 'get_user_info':
+            user = User()
+            user_info = user.get_all_users()
+            user.close_connection()
+            response = {"user_info": user_info}
 
         else:
             response = {"message": "Error"}
