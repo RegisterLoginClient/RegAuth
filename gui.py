@@ -23,7 +23,20 @@ def send_request(action, username, password):
 
     return response
 
+def register():
+    username = username_entry.get()
+    password = password_entry.get()
+    repeat_password = repeat_password_entry.get()
 
+    if password != repeat_password:
+        messagebox.showerror("Error", "Different passwords")
+        return
+
+    if username and password:
+        response = send_request("register", username, password)
+        messagebox.showinfo("Response", response["message"])
+    else:
+        messagebox.showerror("Error", "Enter username and password")
 
 
 
