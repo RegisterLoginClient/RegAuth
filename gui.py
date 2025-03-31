@@ -38,7 +38,15 @@ def register():
     else:
         messagebox.showerror("Error", "Enter username and password")
 
+def login():
+    username = username_entry.get()
+    password = password_entry.get()
 
+    if username and password:
+        response = send_request("login", username, password)
+        messagebox.showinfo("Response", response["message"])
+    else:
+        messagebox.showerror("Error", "Enter username and password")
 
 
 root = Tk()
