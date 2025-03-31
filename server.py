@@ -33,3 +33,26 @@ class User:
 
         self.cursor.execute('INSERT INTO Users (Login, Password, SecretKey) VALUES (?, ?, ?)', (self.username, db_password, secret_key))
         self.conn.commit()
+
+    def check_login(self, input_password):
+        self.cursor.execute('SELECT Password, SecretKey FROM Users WHERE Login = ?', (self.username,))
+        result = self.cursor.fetchone()
+
+        if not result:
+            return False
+
+        stored_data, secret_key = result
+        stored_data = stored_data.split(':')
+        if len(stored_data) != 3:
+            return False
+
+        try:
+            ciphertext = bytes.fromhex(stored_data[0])
+            nonce = bytes.fromhex(stored_data[1])
+            tag = bytes.fromhex(stored_data[2])
+
+            cipher = AES.new(secret_key, AES.MODE_EAX, nonce=nonce)
+            decrypted = cipher.decrypt_and_verify(ciphertext, tag)
+            return decrypted.decode('utf-8') == input_password
+        except:
+            return False
