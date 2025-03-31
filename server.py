@@ -56,3 +56,10 @@ class User:
             return decrypted.decode('utf-8') == input_password
         except:
             return False
+
+    def check_username_exists(self):
+        self.cursor.execute('SELECT * FROM Users WHERE Login = ?', (self.username,))
+        return self.cursor.fetchone() is not None
+
+    def close_connection(self):
+        self.conn.close()
