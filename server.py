@@ -109,6 +109,12 @@ def clients(client):
                 response = {"message": "Error"}
             user.close_connection()
 
+        elif data['action'] == 'get_user_info':
+            user = User()
+            user_info = user.get_all_users()
+            user.close_connection()
+            response = {"user_info": user_info}
+
         else:
             response = {"message": "Error"}
         client.send(jsonpickle.encode(response).encode('utf-8'))
